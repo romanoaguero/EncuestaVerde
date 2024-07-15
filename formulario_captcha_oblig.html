@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Formulario de Encuesta con Mapa y Bootstrap</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <!-- Leaflet Control Geocoder CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+  <!-- Custom CSS -->
+  <style>
+    #map {
+      height: 300px;
+      width: 100%;
+    }
+  </style>
+  <!-- reCAPTCHA -->
+  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+</head>
+<body>
+  <div class="container mt-5">
+    <h2 class="mb-4">Formulario de Encuesta con Mapa</h2>
+
+    <form name="my-google-sheet" id="my-google-sheet" method="POST">
+      <!-- Sección 1: Datos Generales -->
+      <div class="card mb-4">
+        <div class="card-header">
+          Sección 1: Datos Generales
+        </div>
+        <div class="card-body">
+          <div class="form-group">
+            <label for="fecha">Fecha de Encuesta</label>
+            <input type="date" class="form-control" id="fecha" name="fecha" required>
+          </div>
+          <div class="form-group">
+            <label for="hora">Hora de Encuesta</label>
+            <input type="time" class="form-control" id="hora" name="hora" required>
+          </div>
+          <div class="form-group">
+            <label for="ubicacion">¿Dónde vives?</label>
+            <select class="form-control" id="ubicacion" name="ubicacion" required>
+              <option value="" disabled selected>Seleccione una opción</option>
+              <option value="San Miguel de Tucumán">San Miguel de Tucumán</option>
+              <option value="Banda del Río Salí">Banda del Río Salí</option>
+              <option value="Tafí Viejo">Tafí Viejo</option>
+              <option value="Yerba Buena">Yerba Buena</option>
+              <option value="Alderetes">Alderetes</option>
+              <option value="San Pablo">San Pablo</option>
+              <option value="Cebil Redondo">Cebil Redondo</option>
+              <option value="El Manantial">El Manantial</option>
+              <option value="San Andrés">San Andrés</option>
+              <option value="Otro">Otro</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sección 2: Sobre quien responde -->
+      <div class="card mb-4">
+        <div class="card-header">
+          Sección 2: Sobre Quien Responde
+        </div>
+        <div class="card-body">
+          <div class="form-group">
+            <label for="edad">¿Qué edad tienes?</label>
+            <select class="form-control" id="edad" name="edad" required>
+              <option value="" disabled selected>Seleccione una opción</option>
+              <option value="<18">Menor de 18 años</option>
+              <option value="18-24">18 a 24 años</option>
+              <option value="25-34">25 a 34 años</option>
+              <option value="35-44">35 a 44 años</option>
+              <option value="45-54">45 a 54 años</option>
+              <option value=">=65">65 años o más</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="genero">¿Cuál es tu género?</label>
+            <select class="form-control" id="genero" name="genero" required>
+              <option value="" disabled selected>Seleccione una opción</option>
+              <option value="mujer">Mujer</option>
+              <option value="hombre">Hombre</option>
+              <option value="no-binario">No binario</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="actividad">¿Cuál es tu actividad principal?</label>
+            <select class="form-control" id="actividad" name="actividad" required>
+              <option value="" disabled selected>Seleccione una opción</option>
+              <option value="estudiante">Estudiante</option>
+              <option value="ama-de-casa">Ama de casa</option>
+              <option value="trabajador">Trabajador/a</option>
+              <option value="jubilado">Jubilado/a o pensionado/a</option>
+              <option value="desempleado">Desempleado/a</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="distancia">¿A qué distancia de tu vivienda se encuentra la plaza más cercana?</label>
+            <select class="form-control" id="distancia" name="distancia" required>
+              <option value="" disabled selected>Seleccione una opción</option>
+              <option value="<500m">Menos de 500 metros</option>
+              <option value="500m-1km">De 500 metros a 1 kilómetro</option>
+              <option value=">1km">Más de 1 kilómetro</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mapa para marcar la ubicación -->
+      <div class="card mb-4">
+        <div class="card-header">
+          Ubicación en Mapa
+        </div>
+        <div class="card-body">
+          <div id="map"></div>
+          <input type="hidden" id="latitud" name="latitud" required>
+          <input type="hidden" id="longitud" name="longitud" required>
+        </div>
+      </div>
+
+      <!-- reCAPTCHA -->
+      <div class="g-recaptcha" data-sitekey="TU_CLAVE_DEL_SITIO"></div>
+
+      <button type="submit" class="btn btn-primary">Enviar Encuesta</button>
+    </form>
+  </div>
+
+  <!-- Bootstrap y Leaflet JavaScript -->
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <!-- Leaflet Control Geocoder JavaScript -->
+  <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+
+  <script>
+    // Inicializa el mapa centrado en San Miguel de Tucumán
+    var map = L.map('map').setView([-26.8241, -65.2226], 13);
+
+    // Agrega una capa de mapa base
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    // Control de geocodificación
+    var geocoder = L.Control.Geocoder.nominatim();
+    var marker;
+
+    map.on('click', function(e) {
+      var latlng = e.latlng;
+      if (marker) {
+        marker.setLatLng(latlng);
+      } else {
+        marker = L.marker(latlng).addTo(map);
+      }
+      document.getElementById('latitud').value = latlng.lat;
+      document.getElementById('longitud').value = latlng.lng;
+    });
+
+    // Función de envío de datos a la tabla de datos
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbz16CrP48kaqxGsvWHYOBp4coGxKonajNvLiWqp5nw3l6yYPkG6vJwgDsxcvStT_42V3Q/exec';
+    const form = document.forms['my-google-sheet'];
+
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      // Validar reCAPTCHA antes de enviar
+      if (grecaptcha.getResponse() === '') {
+        alert('Por favor, completa el reCAPTCHA');
+        return;
+      }
+
+      fetch(scriptURL, { method: 'POST', body: new FormData(form) })
+        .then(response => console.log('Success!', response))
+        .catch(error => console.error('Error!', error.message));
+    });
+  </script>
+</body>
+</html>
