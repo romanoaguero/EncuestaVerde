@@ -3,26 +3,53 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Formulario de Encuesta con Mapa y Bootstrap</title>
+  <title>Encuestas Espacios Verdes</title>
   <!-- Bootstrap CSS -->
   <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
   <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
   <!-- Leaflet Control Geocoder CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+  <!-- Leaflet GeoSearch CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-geosearch/dist/geosearch.css" />
   <!-- Custom CSS -->
   <style>
     #map {
       height: 300px;
       width: 100%;
     }
+
+    
   </style>
-  <!-- reCAPTCHA -->
-  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+  <style>
+    .form-group {
+        background-color: #f0f0f0; /* Fondo gris */
+        border-radius: 15px; /* Borde con puntas circulares */
+        padding: 20px; /* Espacio interno */
+        margin-bottom: 20px; /* Espacio entre grupos */
+    }
+
+    .form-check {
+        margin-bottom: 10px; /* Espacio entre opciones */
+    }
+
+    .form-check-label {
+        font-style: italic; /* Texto en cursiva */
+        font-size: 14px; /* Tamaño de fuente más pequeño */
+    }
+
+    .form-check-label img {
+        max-width: 100%; /* Imágenes al máximo del contenedor */
+        border: 2px solid #ccc; /* Borde estético */
+        border-radius: 10px; /* Borde redondeado */
+        display: block; /* Alinear correctamente */
+        margin-bottom: 5px; /* Espacio entre imagen y texto */
+    }
+</style>
 </head>
 <body>
   <div class="container mt-5">
-    <h2 class="mb-4">Formulario de Encuesta con Mapa</h2>
+    <h2 class="mb-4">Formulario Espacios Verdes</h2>
 
     <form name="my-google-sheet" id="my-google-sheet" method="POST">
       <!-- Sección 1: Datos Generales -->
@@ -33,15 +60,15 @@
         <div class="card-body">
           <div class="form-group">
             <label for="fecha">Fecha de Encuesta</label>
-            <input type="date" class="form-control" id="fecha" name="fecha">
+            <input type="date" class="form-control" id="fecha" name="fecha" required>
           </div>
           <div class="form-group">
             <label for="hora">Hora de Encuesta</label>
-            <input type="time" class="form-control" id="hora" name="hora">
+            <input type="time" class="form-control" id="hora" name="hora" required>
           </div>
           <div class="form-group">
             <label for="ubicacion">¿Dónde vives?</label>
-            <select class="form-control" id="ubicacion" name="ubicacion">
+            <select class="form-control" id="ubicacion" name="ubicacion" required>
               <option value="" disabled selected>Seleccione una opción</option>
               <option value="San Miguel de Tucumán">San Miguel de Tucumán</option>
               <option value="Banda del Río Salí">Banda del Río Salí</option>
@@ -55,6 +82,23 @@
               <option value="Otro">Otro</option>
             </select>
           </div>
+
+          <div class="form-group">
+            <label for="nombre_plaza">Nombre de la plaza sobre la que realizará la encuesta</label>
+            <input type="text" class="form-control" id="nombre_plaza" name="nombre_plaza" required>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mapa para marcar la ubicación -->
+      <div class="card mb-4">
+        <div class="card-header">
+          Ubicaciòn de la plaza mas proxima a su residencia
+        </div>
+        <div class="card-body">
+          <div id="map"></div>
+          <input type="hidden" id="latitud" name="latitud" required>
+          <input type="hidden" id="longitud" name="longitud" required>
         </div>
       </div>
 
@@ -66,19 +110,20 @@
         <div class="card-body">
           <div class="form-group">
             <label for="edad">¿Qué edad tienes?</label>
-            <select class="form-control" id="edad" name="edad">
+            <select class="form-control" id="edad" name="edad" required>
               <option value="" disabled selected>Seleccione una opción</option>
               <option value="<18">Menor de 18 años</option>
               <option value="18-24">18 a 24 años</option>
               <option value="25-34">25 a 34 años</option>
               <option value="35-44">35 a 44 años</option>
               <option value="45-54">45 a 54 años</option>
+              <option value="55-64">55 a 64 años</option>
               <option value=">=65">65 años o más</option>
             </select>
           </div>
           <div class="form-group">
             <label for="genero">¿Cuál es tu género?</label>
-            <select class="form-control" id="genero" name="genero">
+            <select class="form-control" id="genero" name="genero" required>
               <option value="" disabled selected>Seleccione una opción</option>
               <option value="mujer">Mujer</option>
               <option value="hombre">Hombre</option>
@@ -87,7 +132,7 @@
           </div>
           <div class="form-group">
             <label for="actividad">¿Cuál es tu actividad principal?</label>
-            <select class="form-control" id="actividad" name="actividad">
+            <select class="form-control" id="actividad" name="actividad" required>
               <option value="" disabled selected>Seleccione una opción</option>
               <option value="estudiante">Estudiante</option>
               <option value="ama-de-casa">Ama de casa</option>
@@ -98,30 +143,231 @@
           </div>
           <div class="form-group">
             <label for="distancia">¿A qué distancia de tu vivienda se encuentra la plaza más cercana?</label>
-            <select class="form-control" id="distancia" name="distancia">
+            <select class="form-control" id="distancia" name="distancia" required>
               <option value="" disabled selected>Seleccione una opción</option>
               <option value="<500m">Menos de 500 metros</option>
               <option value="500m-1km">De 500 metros a 1 kilómetro</option>
               <option value=">1km">Más de 1 kilómetro</option>
             </select>
           </div>
+
+          <div class="form-group">
+            <label for="llegaPlaza">Cómo llega a la plaza?</label>
+            <select class="form-control" id="llegaPlaza" name="llegaPlaza" required>
+              <option value="" disabled selected>Seleccione una opción</option>
+              <option value="pie">A pie</option>
+              <option value="bici">En bicicleta</option>
+              <option value="moto">En motocicleta</option>
+              <option value="transpo">En transporte publico</option>
+              <option value="auto">En automovil</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="frecuencia_visita">¿Con qué frecuencia visita esta plaza?</label>
+            <select class="form-control" id="frecuencia_visita" name="frecuencia_visita" required>
+              <option value="" disabled selected>Seleccione una opción</option>
+              <option value="todos_los_dias">Todos los días</option>
+              <option value="varias_veces_semana">Varias veces a la semana</option>
+              <option value="una_vez_semana">Una vez a la semana</option>
+              <option value="varias_veces_mes">Varias veces al mes</option>
+              <option value="una_vez_mes">Una vez al mes</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="tiempo_plaza">En promedio, ¿Cuánto tiempo permanece en la plaza?</label>
+            <select class="form-control" id="tiempo_plaza" name="tiempo_plaza" required>
+              <option value="" disabled selected>Seleccione una opción</option>
+              <option value="menos_de_una_hora">Menos de una hora</option>
+              <option value="entre_una_y_dos_horas">Entre una y dos horas</option>
+              <option value="mas_de_una_hora">Más de una hora</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label>¿Qué te lleva a pasar tiempo en la plaza? (Selecciona las opciones necesarias)</label><br>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="motivo_estudiar" name="motivos[estudiar]" value="Estudiar o leer al aire libre">
+              <label class="form-check-label" for="motivo_estudiar">Estudiar o leer al aire libre</label>
+            </div>
+
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="motivo_pasear" name="motivos[pasear]" value="Pasear o caminar">
+              <label class="form-check-label" for="motivo_pasear">Pasear o caminar</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="motivo_descansar" name="motivos[descansar]" value="Descansar y relajarse">
+              <label class="form-check-label" for="motivo_descansar">Descansar y relajarse</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="motivo_juegos_infantiles" name="motivos[juegos_infantiles]" value="juegos_infantiles">
+              <label class="form-check-label" for="motivo_juegos_infantiles">Uso de juegos infantiles</label>
+            </div>
+            
+            <!-- Agrega las demás opciones según sea necesario -->
+          </div>
         </div>
       </div>
-
-      <!-- Mapa para marcar la ubicación -->
+                      <!-- Sección 3: Sobre la accesibilidad -->
       <div class="card mb-4">
         <div class="card-header">
-          Ubicación en Mapa
+          Sección 3: Sobre la accesibilidad
         </div>
         <div class="card-body">
-          <div id="map"></div>
-          <input type="hidden" id="latitud" name="latitud">
-          <input type="hidden" id="longitud" name="longitud">
+          <div class="form-group">
+            <label for="dificultad_llegar">¿Ha experimentado alguna dificultad para llegar a la plaza?</label>
+            <select class="form-control" id="dificultad_llegar" name="dificultad_llegar" required>
+              <option value="" disabled selected>Seleccione una opción</option>
+              <option value="distancia_excesiva">Distancia excesiva desde su lugar de residencia</option>
+              <option value="falta_iluminacion">Falta de iluminación en los alrededores</option>
+              <option value="veredas_rotas">Veredas rotas o en mal estado, escalones, otros obstáculos, etc.</option>
+              <option value="falta_transporte">Falta de transporte público cercano</option>
+              <option value="ninguna_dificultad">Ninguna dificultad</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="accesibilidad">¿Crees que esta plaza cumple con los parámetros mínimos de accesibilidad?</label>
+            <select class="form-control" id="accesibilidad" name="accesibilidad" required>
+              <option value="" disabled selected>Seleccione una opción</option>
+              <option value="si">Sí</option>
+              <option value="no">No</option>
+            </select>
+          </div>
+        </div>
+      </div> 
+
+     <!-- Sección 4: Preferencias de diseño de la plaza -->
+<div class="card mb-4">
+  <div class="card-header">
+    Sección 4: Como te gustaría que sea tu plaza
+  </div>
+  <div class="card-body">
+    <div class="form-group">
+      <label>¿Cuál de estas opciones de espacios verdes te parece más segura?</label><br>
+      <div class="form-check">
+        <input class="form-check-input" type="radio" name="espaciosVerdesSegura" id="espaciosVerdesOpcionA" value="espaciosVerdesOpcionA">
+        <label class="form-check-label" for="espaciosVerdesOpcionA">
+          <img src="Imagenes/plazas_tradicional_1714795387073.jpg" alt="Opción A" style="max-width: 300px;"><br>
+          Imagen A: Plaza tradicional.
+        </label>
+      </div>
+      <div class="form-check">
+        <input class="form-check-input" type="radio" name="espaciosVerdesSegura" id="espaciosVerdesOpcionB" value="espaciosVerdesOpcionB">
+        <label class="form-check-label" for="espaciosVerdesOpcionB">
+          <img src="Imagenes/bosque_urbano.jpg" alt="Opción B" style="max-width: 300px;"><br>
+          Imagen B: Bosque urbano.
+        </label>
+      </div>
+      <div class="form-check">
+        <input class="form-check-input" type="radio" name="espaciosVerdesSegura" id="espaciosVerdesOpcionC" value="espaciosVerdesOpcionC">
+        <label class="form-check-label" for="espaciosVerdesOpcionC">
+          <img src="Imagenes/plzaz_cerrada.jpg" alt="Opción C" style="max-width: 300px;"><br>
+          Imagen C: Plaza cercada.
+        </label>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>¿Cuál de estas opciones de diseño de plazas te gusta más?</label><br>
+      <div class="form-check">
+        <input class="form-check-input" type="radio" name="disenoPlazasFavorito" id="disenoPlazasOpcionA" value="disenoPlazasOpcionA">
+        <label class="form-check-label" for="disenoPlazasOpcionA">
+          <img src="Imagenes/plaza seca.jpeg" alt="Opción A" style="max-width: 300px;"><br>
+          Imagen A: Plaza seca, diseño geométrico, escasa actividad de usos internos.
+        </label>
+      </div>
+      <div class="form-check">
+        <input class="form-check-input" type="radio" name="disenoPlazasFavorito" id="disenoPlazasOpcionB" value="disenoPlazasOpcionB">
+        <label class="form-check-label" for="disenoPlazasOpcionB">
+          <img src="Imagenes/parque carbono.jpeg" alt="Opción B" style="max-width: 300px;"><br>
+          Imagen B: Parque carbono neutral, diseño orgánico, diversidad de usos internos.
+        </label>
+      </div>
+      <div class="form-check">
+        <input class="form-check-input" type="radio" name="disenoPlazasFavorito" id="disenoPlazasOpcionC" value="disenoPlazasOpcionC">
+        <label class="form-check-label" for="disenoPlazasOpcionC">
+          <img src="Imagenes/bosque urbano codiseño.jpeg" alt="Opción C" style="max-width: 300px;"><br>
+          Imagen C: Bosque urbano, diseño regenerativo o co-diseño.
+        </label>
+      </div>
+    </div>
+      
+  
+  <div class="form-group">
+      <label>¿Cuál de estos tipos de plaza se adapta más a tus necesidades?</label><br>
+      <div class="form-check">
+          <input class="form-check-input" type="radio" name="tipoPlazaNecesidades" id="tipoPlazaOpcionA" value="tipoPlazaOpcionA">
+          <label class="form-check-label" for="tipoPlazaOpcionA">
+              <img src="Imagenes/plaza_contemplativa.jpg" alt="Opción A"  style="max-width: 300px;" ><br>
+              Imagen A: Plaza o bosque urbano contemplativo.
+          </label>
+      </div>
+      <div class="form-check">
+          <input class="form-check-input" type="radio" name="tipoPlazaNecesidades" id="tipoPlazaOpcionB" value="tipoPlazaOpcionB">
+          <label class="form-check-label" for="tipoPlazaOpcionB">
+              <img src="Imagenes/plaza_multifuncional.jpeg" alt="Opción B"  style="max-width: 300px;"><br>
+              Imagen B: Plaza multifuncional.
+          </label>
+      </div>
+      <div class="form-check">
+          <input class="form-check-input" type="radio" name="tipoPlazaNecesidades" id="tipoPlazaOpcionC" value="tipoPlazaOpcionC">
+          <label class="form-check-label" for="tipoPlazaOpcionC">
+              <img src="Imagenes/plaza diseñada promovida.jpg" alt="Opción C" style="max-width: 300px;"><br>
+              Imagen C: Plaza diseñada y promovida según las necesidades ciudadanas, huertos urbanos.
+          </label>
+      </div>
+  </div>
+  
+  <div class="form-group">
+      <label>¿Qué tipo de vegetación prefieres en una plaza?</label><br>
+      <div class="form-check">
+          <input class="form-check-input" type="radio" name="vegetacionPlazaPreferida" id="vegetacionPlazaOpcionA" value="vegetacionPlazaOpcionA">
+          <label class="form-check-label" for="vegetacionPlazaOpcionA">
+              <img src="Imagenes/plaza con dive de vege.jpg" alt="Opción A"  style="max-width: 300px;"><br>
+           Imagen A: Plaza con diversidad de vegetación principalmente exótica (no nativa).
+          </label>
+      </div>
+      <div class="form-check">
+          <input class="form-check-input" type="radio" name="vegetacionPlazaPreferida" id="vegetacionPlazaOpcionB" value="vegetacionPlazaOpcionB">
+          <label class="form-check-label" for="vegetacionPlazaOpcionB">
+              <img src="Imagenes/plaza nativa.jpg" alt="Opción B"  style="max-width: 300px;"><br>
+              Imagen B: Plaza con vegetación nativa.
+          </label>
+      </div>
+      <div class="form-check">
+          <input class="form-check-input" type="radio" name="vegetacionPlazaPreferida" id="vegetacionPlazaOpcionC" value="vegetacionPlazaOpcionC">
+          <label class="form-check-label" for="vegetacionPlazaOpcionC">
+              <img src="Imagenes/plaza con escasa sombra.jpg" alt="Opción C"  style="max-width: 300px;"><br>
+              Imagen C: Plaza con escasa sombra natural y presencia de agua (humedales).
+          </label>
+      </div>
+  </div>
+
+
+
+      <!-- Sección 5:Sobre infraestructura y servicios -->
+      <div class="card mb-4">
+        <div class="card-header">
+          Sección 5: Sobre infraestructura y servicios
+        </div>
+        <div class="card-body">
+          <div class="form-group">
+            <label for="mantenimiento">¿Cómo califica el mantenimiento general de la plaza?</label>
+            <select class="form-control" id="mantenimiento" name="mantenimiento" required>
+              <option value="" disabled selected>Seleccione una opción</option>
+              <option value="excelente">Excelente</option>
+              <option value="bueno">Bueno</option>
+              <option value="regular">Regular</option>
+              <option value="malo">Malo</option>
+              <option value="muy_malo">Muy malo</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="plaza_preferida">¿Cuál es tu plaza o espacio verde preferido?</label>
+            <input type="text" class="form-control" id="plaza_preferida" name="plaza_preferida" required>
+          </div>
         </div>
       </div>
-
-      <!-- reCAPTCHA -->
-      <div class="g-recaptcha" data-sitekey="TU_CLAVE_DEL_SITIO"></div>
+      
 
       <button type="submit" class="btn btn-primary">Enviar Encuesta</button>
     </form>
@@ -134,6 +380,8 @@
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <!-- Leaflet Control Geocoder JavaScript -->
   <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+  <!-- Leaflet GeoSearch JavaScript -->
+  <script src="https://unpkg.com/leaflet-geosearch/dist/geosearch.umd.js"></script>
 
   <script>
     // Inicializa el mapa centrado en San Miguel de Tucumán
@@ -155,26 +403,75 @@
       } else {
         marker = L.marker(latlng).addTo(map);
       }
-      document.getElementById('latitud').value = latlng.lat;
-      document.getElementById('longitud').value = latlng.lng;
+      document.getElementById('latitud').value = latlng.lat.toFixed(6);
+      document.getElementById('longitud').value = latlng.lng.toFixed(6);
     });
+
+    // Agregar el campo de búsqueda
+    const provider = new GeoSearch.OpenStreetMapProvider();
+
+    const searchControl = new GeoSearch.GeoSearchControl({
+      provider: provider,
+      style: 'bar',
+      autoComplete: true,
+      autoCompleteDelay: 250,
+      showMarker: true,
+      retainZoomLevel: false,
+      animateZoom: true,
+      keepResult: true,
+      searchLabel: 'Buscar ubicación...',
+      updateMap: true
+    });
+
+    map.addControl(searchControl);
+
+    // Obtener la fecha y hora actuales
+    const currentDate = new Date();
+    const currentDateString = currentDate.toISOString().slice(0, 10); // Formato YYYY-MM-DD
+    const currentTimeString = currentDate.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+
+    // Llenar automáticamente los campos de fecha y hora
+    document.getElementById('fecha').value = currentDateString;
+    document.getElementById('hora').value = currentTimeString;
 
     // Función de envío de datos a la tabla de datos
     const scriptURL = 'https://script.google.com/macros/s/AKfycbz16CrP48kaqxGsvWHYOBp4coGxKonajNvLiWqp5nw3l6yYPkG6vJwgDsxcvStT_42V3Q/exec';
     const form = document.forms['my-google-sheet'];
+    const submitButton = form.querySelector('button[type="submit"]');
 
     form.addEventListener('submit', e => {
-      e.preventDefault();
-      // Validar reCAPTCHA antes de enviar
-      if (grecaptcha.getResponse() === '') {
-        alert('Por favor, completa el reCAPTCHA');
-        return;
-      }
+        e.preventDefault();
 
-      fetch(scriptURL, { method: 'POST', body: new FormData(form) })
-        .then(response => console.log('Success!', response))
-        .catch(error => console.error('Error!', error.message));
+        // Mostrar mensaje "Enviando formulario..."
+        submitButton.innerText = 'Enviando formulario...';
+        submitButton.disabled = true;
+
+        // Envío del formulario sin validación de reCAPTCHA
+        fetch(scriptURL, { method: 'POST', body: new FormData(form) })
+            .then(response => {
+                if (response.ok) {
+                    alert('El formulario se envió con éxito.');
+
+                    // Restaurar el texto del botón y activar después de mostrar la alerta
+                    submitButton.innerText = 'Enviar Encuesta';
+                    submitButton.disabled = false;
+
+                    // Actualizar el formulario
+                    form.reset();
+                } else {
+                    throw new Error('Error en el envío del formulario.');
+                }
+            })
+            .catch(error => {
+                console.error('Error!', error.message);
+                alert('Hubo un error al enviar el formulario. Por favor, inténtalo de nuevo.');
+
+                // Restaurar el texto del botón y activar en caso de error
+                submitButton.innerText = 'Enviar Encuesta';
+                submitButton.disabled = false;
+            });
     });
   </script>
 </body>
 </html>
+
